@@ -1,18 +1,28 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { recognizeIngredients } from '@/lib/api';
+import RecognitionResult from './RecognitionResult';
+import { useRouter } from 'next/navigation';
 
 /**
  * 扫描界面组件
  * @returns JSX.Element
  */
 const ScannerView: React.FC = () => {
+  // 路由
+  const router = useRouter();
+  
   // 状态管理
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [recognitionResult, setRecognitionResult] = useState<string>('');
+  const [showResult, setShowResult] = useState(false);
+  const [activeTab, setActiveTab] = useState<'ai' | 'voice'>('ai');
   
   // 引用
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -145,6 +155,8 @@ const ScannerView: React.FC = () => {
       // 如果已拍照，返回到相机界面
       setCapturedImage(null);
       setIsCameraReady(false);
+      setShowResult(false);
+      setRecognitionResult('');
       
       // 重新初始化摄像头
       setTimeout(() => {
@@ -152,8 +164,41 @@ const ScannerView: React.FC = () => {
       }, 100);
     } else {
       // 否则返回上一页
-      window.history.back();
+      router.push('/');
     }
+  };
+  
+  // 识别食材
+  const recognizeFood = async () => {
+    if (!capturedImage) return;
+    
+    try {
+      setIsRecognizing(true);
+      setShowResult(true);
+      
+      // 从 data:image/jpeg;base64, 中提取 base64 部分
+      const base64Data = capturedImage.split(',')[1];
+      
+      // 调用 API 识别食材
+      const result = await recognizeIngredients(base64Data);
+      setRecognitionResult(result);
+    } catch (error) {
+      console.error('识别食材失败:', error);
+      setRecognitionResult('识别失败，请重试');
+    } finally {
+      setIsRecognizing(false);
+    }
+  };
+  
+  // 添加到清单
+  const addToShoppingList = () => {
+    // 关闭结果弹窗
+    setShowResult(false);
+    
+    // 跳转到首页
+    router.push('/');
+    
+    // 可以在这里添加将识别结果保存到本地存储或发送到服务器的逻辑
   };
 
   return (
@@ -255,11 +300,35 @@ const ScannerView: React.FC = () => {
           {/* 文字按钮区域 */}
           <div className="absolute top-0 left-0 right-0 flex justify-center items-center h-[50px] border-b border-gray-100">
             <div className="flex items-center justify-center gap-12">
-              <button className="px-4 py-2 text-base">
+              <button 
+                className={cn(
+                  "px-4 py-2 text-base relative",
+                  activeTab === 'ai' ? "text-black" : "text-gray-400"
+                )}
+                onClick={() => setActiveTab('ai')}
+              >
                 AI扫描
+                {activeTab === 'ai' && (
+                  <motion.div 
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
+                    layoutId="activeTab"
+                  />
+                )}
               </button>
-              <button className="px-4 py-2 text-base text-gray-400">
+              <button 
+                className={cn(
+                  "px-4 py-2 text-base relative",
+                  activeTab === 'voice' ? "text-black" : "text-gray-400"
+                )}
+                onClick={() => setActiveTab('voice')}
+              >
                 语音输入
+                {activeTab === 'voice' && (
+                  <motion.div 
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
+                    layoutId="activeTab"
+                  />
+                )}
               </button>
             </div>
           </div>
@@ -287,10 +356,36 @@ const ScannerView: React.FC = () => {
             </div>
           </motion.button>
           
+          {/* 识别按钮 - 仅在已拍照时显示 */}
+          {capturedImage && (
+            <motion.button
+              className="absolute right-[54px] bottom-[40px] bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={recognizeFood}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M9 5L15 10L9 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </motion.button>
+          )}
+          
           {/* Home Indicator */}
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-[144px] h-[5px] bg-black rounded-full opacity-30" />
         </div>
       </div>
+      
+      {/* 识别结果弹窗 */}
+      <AnimatePresence>
+        {showResult && (
+          <RecognitionResult
+            result={recognitionResult}
+            isLoading={isRecognizing}
+            onClose={() => setShowResult(false)}
+            onAddToList={addToShoppingList}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
