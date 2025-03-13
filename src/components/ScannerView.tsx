@@ -195,7 +195,7 @@ const ScannerView: React.FC = () => {
             .map(item => item.text)
             .join('\n');
         }
-      } catch (_) {
+      } catch {
         // 如果不是 JSON 字符串，直接使用原始结果
         console.log('结果不是 JSON 格式，使用原始文本');
       }

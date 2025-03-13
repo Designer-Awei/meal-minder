@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
 import Image from 'next/image';

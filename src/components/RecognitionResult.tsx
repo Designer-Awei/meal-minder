@@ -45,9 +45,13 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
 
-  // 格式化重量
-  // 注意：此函数目前在组件内部未直接使用，但保留以供将来使用或导出给其他组件
-  const formatWeight = (weightStr: string) => {
+  /**
+   * 格式化重量
+   * 将重量格式化为适当的单位显示
+   * @param weightStr 重量字符串
+   * @returns 格式化后的重量字符串
+   */
+  export const formatWeight = (weightStr: string) => {
     if (!weightStr) return '';
     
     // 提取数字部分
