@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 import { Trash2, Edit2, Check, X } from 'lucide-react';
 
 export interface RecognitionResultProps {
-  isOpen: boolean;
   onClose: () => void;
   result: string;
   onSave: (items: IngredientItem[]) => void;
+  isLoading?: boolean;
 }
 
 /**
@@ -133,45 +133,57 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
             </div>
           ) : ingredientItems.length > 0 ? (
             <div className="space-y-3">
+              {/* 表头 */}
+              <div className="flex items-center px-2 text-sm text-gray-500">
+                <div className="w-[40%] pl-2">类别</div>
+                <div className="w-[25%] pl-2">数量</div>
+                <div className="w-[25%] pl-2">重量</div>
+                <div className="w-[10%] text-center">删除</div>
+              </div>
+              
               {ingredientItems.map((item) => (
                 <motion.div 
                   key={item.id}
-                  className="p-4 bg-orange-50 rounded-lg shadow-sm border border-orange-100"
+                  className="p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg shadow-sm border border-orange-200"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   layout
                 >
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[40%]">
                       <input
                         type="text"
                         value={item.name}
                         onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="食材名称"
+                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
+                        placeholder="类别"
                       />
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 text-gray-500 hover:text-red-500 rounded-full"
-                      >
-                        <Trash2 size={14} />
-                      </button>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="w-[25%]">
                       <input
                         type="text"
                         value={item.quantity}
                         onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                         placeholder="数量"
                       />
+                    </div>
+                    <div className="w-[25%]">
                       <input
                         type="text"
                         value={item.weight}
                         onChange={(e) => handleUpdateItem(item.id, 'weight', e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="重量 (克)"
+                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="重量"
                       />
+                    </div>
+                    <div className="w-[10%] flex justify-center items-center">
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={20} />
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -179,7 +191,7 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
               
               {/* 添加新食材按钮 */}
               <motion.button
-                className="w-full p-3 border border-dashed border-orange-300 rounded-lg text-orange-500 hover:bg-orange-50 transition-colors"
+                className="w-full p-3 border-2 border-dashed border-orange-300 rounded-lg text-orange-500 hover:bg-orange-50 transition-colors font-medium"
                 onClick={handleAddNew}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -200,16 +212,20 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700"
+            className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
           >
             取消
           </button>
           <button
             onClick={() => {
               // 将编辑后的食材列表传递给父组件
-              onSave(ingredientItems.filter(item => item.name.trim() !== ''));
+              // 类别为必填项，数量和重量填选其一即可保存
+              const validItems = ingredientItems.filter(item => 
+                item.name.trim() !== '' && (item.quantity.trim() !== '' || item.weight.trim() !== '')
+              );
+              onSave(validItems);
             }}
-            className="px-4 py-2 rounded-lg bg-orange-500 text-white"
+            className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-colors shadow-sm"
             disabled={isLoading || ingredientItems.length === 0}
           >
             添加到粮仓

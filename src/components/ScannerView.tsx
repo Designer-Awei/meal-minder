@@ -393,12 +393,13 @@ const ScannerView: React.FC = () => {
           {/* 识别按钮 - 仅在已拍照时显示 */}
           {capturedImage && (
             <motion.button
-              className="absolute right-[54px] bottom-[50px] bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center"
+              className="absolute right-[40px] bottom-[50px] bg-orange-500 text-white rounded-full px-4 py-2 flex items-center justify-center gap-1"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={recognizeFood}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <span className="text-sm font-medium">识别</span>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                 <path d="M9 5L15 10L9 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </motion.button>
@@ -416,7 +417,7 @@ const ScannerView: React.FC = () => {
             result={recognitionResult}
             isLoading={isRecognizing}
             onClose={() => setShowResult(false)}
-            onAddToList={(ingredients) => addToShoppingList(ingredients)}
+            onSave={(ingredients) => addToShoppingList(ingredients)}
           />
         )}
       </AnimatePresence>
