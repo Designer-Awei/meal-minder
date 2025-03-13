@@ -1,8 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
+import Image from 'next/image';
 
 /**
  * 食谱页面组件
@@ -77,9 +78,11 @@ const RecipePage = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="h-40 overflow-hidden">
-              <img 
+              <Image 
                 src={recipe.image} 
                 alt={recipe.name} 
+                width={400}
+                height={160}
                 className="w-full h-full object-cover"
               />
             </div>

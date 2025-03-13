@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2, Edit2, Check, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 
 export interface RecognitionResultProps {
   onClose: () => void;
@@ -46,6 +46,7 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
   };
 
   // 格式化重量
+  // 注意：此函数目前在组件内部未直接使用，但保留以供将来使用或导出给其他组件
   const formatWeight = (weightStr: string) => {
     if (!weightStr) return '';
     

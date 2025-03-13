@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useUser } from '@/contexts/UserContext';
 import { Pencil, X, Check, Camera } from 'lucide-react';
+import Image from 'next/image';
 
 /**
  * 个人页面组件
@@ -126,10 +127,13 @@ const ProfilePage = () => {
               className="w-20 h-20 rounded-full overflow-hidden border-4 border-white relative flex-shrink-0"
               onClick={handleAvatarClick}
             >
-              <img 
+              <Image 
                 src={user.avatar} 
                 alt={user.name} 
+                width={80}
+                height={80}
                 className="w-full h-full object-cover"
+                unoptimized={user.avatar.startsWith('data:')}
               />
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                 <Camera size={24} color="white" />

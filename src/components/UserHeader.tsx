@@ -3,6 +3,7 @@
 import React from 'react';
 import { useUser } from '@/contexts/UserContext';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const UserHeader = () => {
   const { user, isLoading } = useUser();
@@ -12,10 +13,13 @@ const UserHeader = () => {
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-orange-200 flex-shrink-0">
           {!isLoading && (
-            <img 
+            <Image 
               src={user.avatar} 
               alt={user.name} 
+              width={48}
+              height={48}
               className="w-full h-full object-cover"
+              unoptimized={user.avatar.startsWith('data:')}
             />
           )}
         </div>

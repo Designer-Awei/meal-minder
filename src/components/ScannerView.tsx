@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { recognizeIngredients } from '@/lib/api';
 import RecognitionResult, { IngredientItem } from './RecognitionResult';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 /**
  * 扫描界面组件
@@ -28,9 +29,6 @@ const ScannerView: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  
-  // 添加识别到的食材列表状态
-  const [recognizedIngredients, setRecognizedIngredients] = useState<IngredientItem[]>([]);
   
   // 初始化摄像头
   const initCamera = async () => {
@@ -197,7 +195,7 @@ const ScannerView: React.FC = () => {
             .map(item => item.text)
             .join('\n');
         }
-      } catch (e) {
+      } catch (_) {
         // 如果不是 JSON 字符串，直接使用原始结果
         console.log('结果不是 JSON 格式，使用原始文本');
       }
@@ -389,10 +387,13 @@ const ScannerView: React.FC = () => {
         
         {/* 捕获的图像 */}
         {capturedImage && (
-          <img 
+          <Image 
             src={capturedImage} 
             alt="已拍摄的图片" 
+            width={500}
+            height={500}
             className="w-full h-full object-contain"
+            unoptimized={true}
           />
         )}
         

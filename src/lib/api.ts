@@ -6,7 +6,17 @@
 // 定义消息类型
 export interface Message {
   role: 'system' | 'user' | 'assistant';
-  content: string | Array<{type: string; [key: string]: any}>;
+  content: string | Array<MessageContent>;
+}
+
+// 定义消息内容类型
+interface MessageContent {
+  type: string;
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+  [key: string]: unknown;
 }
 
 // 定义 API 响应类型
