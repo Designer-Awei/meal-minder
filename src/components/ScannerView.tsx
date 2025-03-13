@@ -202,7 +202,16 @@ const ScannerView: React.FC = () => {
         console.log('结果不是 JSON 格式，使用原始文本');
       }
       
-      setRecognitionResult(processedResult);
+      // 检查是否识别出了食材
+      if (!processedResult || processedResult.trim() === '') {
+        setRecognitionResult('未识别出任何食材，请重新拍摄或手动添加');
+      } else if (processedResult.toLowerCase().includes('error') || 
+                processedResult.includes('失败') || 
+                processedResult.includes('错误')) {
+        setRecognitionResult('识别失败，请重试');
+      } else {
+        setRecognitionResult(processedResult);
+      }
     } catch (error) {
       console.error('识别食材失败:', error);
       setRecognitionResult('识别失败，请重试');

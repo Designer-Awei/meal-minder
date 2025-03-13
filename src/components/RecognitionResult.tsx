@@ -19,6 +19,7 @@ export interface IngredientItem {
   name: string;
   quantity: string;
   weight: string;
+  isEditing?: boolean;
 }
 
 /**
@@ -33,6 +34,11 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
   // 解析结果并生成带有唯一ID的食材项目
   const parseResultItems = React.useCallback(() => {
     if (!result || isLoading) return [];
+    
+    // 检查是否为错误信息或未识别出食材的情况
+    if (result.includes('识别失败') || result.includes('无法识别') || result.includes('未识别')) {
+      return [];
+    }
     
     // 按行分割结果
     return result
@@ -202,9 +208,29 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
               </motion.button>
             </div>
           ) : (
-            <p className="text-center py-8 text-gray-500">
-              {result || "无法识别图片中的食材"}
-            </p>
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="w-16 h-16 text-orange-500 mb-4">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 16H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p className="text-center text-gray-500 mb-2 text-lg font-medium">
+                {result.includes('识别失败') ? '识别失败，请重试' : '未识别出食材'}
+              </p>
+              <p className="text-center text-gray-400 max-w-xs">
+                {result.includes('识别失败') ? '请尝试调整拍摄角度或光线后重新识别' : '您可以手动添加食材或尝试重新拍摄'}
+              </p>
+              <motion.button
+                className="mt-6 px-5 py-2.5 bg-orange-50 text-orange-500 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors"
+                onClick={handleAddNew}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                手动添加食材
+              </motion.button>
+            </div>
           )}
         </div>
         
