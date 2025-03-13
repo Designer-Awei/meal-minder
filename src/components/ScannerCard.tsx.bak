@@ -2,11 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 
 const ScannerCard = () => {
-  const router = useRouter();
-
   return (
     <div className="px-6 py-4">
       <motion.div 
@@ -38,7 +35,6 @@ const ScannerCard = () => {
             className="flex items-center gap-2 bg-white text-[#D64000] px-6 py-3 rounded-full"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/scanner')}
           >
             <span>AI扫描-食材录入</span>
             <motion.svg 
@@ -58,4 +54,4 @@ const ScannerCard = () => {
   );
 };
 
-export default ScannerCard;
+export default ScannerCard; 
