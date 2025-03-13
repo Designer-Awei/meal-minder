@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * 识别结果组件
+ * 用于显示和编辑食材识别结果
+ */
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Trash2, X } from 'lucide-react';
@@ -25,6 +30,47 @@ export interface IngredientItem {
 }
 
 /**
+ * 格式化日期时间
+ * @param isoString ISO 格式的日期时间字符串
+ * @returns 格式化后的日期时间字符串
+ */
+export const formatDateTime = (isoString: string) => {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+/**
+ * 格式化重量
+ * 将重量格式化为适当的单位显示
+ * @param weightStr 重量字符串
+ * @returns 格式化后的重量字符串
+ */
+export const formatWeight = (weightStr: string) => {
+  if (!weightStr) return '';
+  
+  // 提取数字部分
+  const match = weightStr.match(/(\d+(\.\d+)?)/);
+  if (!match) return weightStr;
+  
+  const numValue = parseFloat(match[1]);
+  const unit = weightStr.replace(match[0], '').trim() || '克';
+  
+  // 如果单位是克且数值大于1000，转换为千克
+  if ((unit === '克' || unit === 'g' || unit === '') && numValue >= 1000) {
+    return `${(numValue / 1000).toFixed(2)}千克`;
+  }
+  
+  // 否则保留整数
+  return `${Math.round(numValue)}${unit}`;
+};
+
+/**
  * 识别结果展示组件
  */
 const RecognitionResult: React.FC<RecognitionResultProps> = ({
@@ -33,43 +79,6 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
   onClose,
   onSave
 }) => {
-  // 格式化日期时间
-  const formatDateTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-  };
-
-  /**
-   * 格式化重量
-   * 将重量格式化为适当的单位显示
-   * @param weightStr 重量字符串
-   * @returns 格式化后的重量字符串
-   */
-  export const formatWeight = (weightStr: string) => {
-    if (!weightStr) return '';
-    
-    // 提取数字部分
-    const match = weightStr.match(/(\d+(\.\d+)?)/);
-    if (!match) return weightStr;
-    
-    const numValue = parseFloat(match[1]);
-    const unit = weightStr.replace(match[0], '').trim() || '克';
-    
-    // 如果单位是克且数值大于1000，转换为千克
-    if ((unit === '克' || unit === 'g' || unit === '') && numValue >= 1000) {
-      return `${(numValue / 1000).toFixed(2)}千克`;
-    }
-    
-    // 否则保留整数
-    return `${Math.round(numValue)}${unit}`;
-  };
-
   // 解析结果并生成带有唯一ID的食材项目
   const parseResultItems = React.useCallback(() => {
     if (!result || isLoading) return [];

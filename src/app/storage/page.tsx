@@ -3,46 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
-import { IngredientItem } from '@/components/RecognitionResult';
+import { IngredientItem, formatDateTime, formatWeight } from '@/components/RecognitionResult';
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-
-/**
- * 格式化日期时间
- */
-const formatDateTime = (isoString: string) => {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
-};
-
-/**
- * 格式化重量
- * 当重量超过1000克时，自动转换为千克单位，保留两位小数
- */
-const formatWeight = (weightStr: string) => {
-  if (!weightStr) return '';
-  
-  // 提取数字部分
-  const match = weightStr.match(/(\d+(\.\d+)?)/);
-  if (!match) return weightStr;
-  
-  const numValue = parseFloat(match[1]);
-  const unit = weightStr.replace(match[0], '').trim() || '克';
-  
-  // 如果单位是克且数值大于1000，转换为千克
-  if ((unit === '克' || unit === 'g' || unit === '') && numValue >= 1000) {
-    return `${(numValue / 1000).toFixed(2)}千克`;
-  }
-  
-  // 否则保留整数
-  return `${Math.round(numValue)}${unit}`;
-};
 
 /**
  * 粮仓页面组件

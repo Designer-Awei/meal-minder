@@ -27,6 +27,10 @@ const nextConfig = {
     // 在生产构建期间忽略 TypeScript 错误
     ignoreBuildErrors: true,
   },
+  // 禁用 Google Fonts 加载
+  experimental: {
+    fontLoaders: []
+  },
 };
 
 module.exports = nextConfig; 
