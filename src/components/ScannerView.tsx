@@ -234,10 +234,122 @@ const ScannerView: React.FC = () => {
     // 可以在这里添加将识别结果保存到本地存储或发送到服务器的逻辑
     console.log('添加到粮仓的食材:', ingredients);
     
-    // 示例：保存到 localStorage
+    // 从本地存储获取现有食材
     try {
-      const existingItems = JSON.parse(localStorage.getItem('pantryItems') || '[]');
-      const updatedItems = [...existingItems, ...ingredients];
+      const existingItems = JSON.parse(localStorage.getItem('pantryItems') || '[]') as IngredientItem[];
+      
+      // 处理合并逻辑
+      const updatedItems: IngredientItem[] = [...existingItems];
+      
+      // 遍历新添加的食材
+      for (const newItem of ingredients) {
+        // 查找是否有相同名称的食材
+        const existingItemIndex = updatedItems.findIndex(item => 
+          item.name.trim().toLowerCase() === newItem.name.trim().toLowerCase()
+        );
+        
+        if (existingItemIndex !== -1) {
+          // 找到相同名称的食材，进行合并
+          const existingItem = updatedItems[existingItemIndex];
+          
+          // 保存历史记录
+          const history = existingItem.history || [];
+          history.unshift({
+            createdAt: existingItem.createdAt,
+            quantity: existingItem.quantity,
+            weight: existingItem.weight
+          });
+          
+          // 最多保留3条历史记录
+          while (history.length > 2) {
+            history.pop();
+          }
+          
+          // 合并重量
+          let mergedWeight = '';
+          if (existingItem.weight && newItem.weight) {
+            // 尝试解析数字部分
+            const existingWeightMatch = existingItem.weight.match(/(\d+(\.\d+)?)/);
+            const newWeightMatch = newItem.weight.match(/(\d+(\.\d+)?)/);
+            
+            if (existingWeightMatch && newWeightMatch) {
+              const existingWeightNum = parseFloat(existingWeightMatch[1]);
+              const newWeightNum = parseFloat(newWeightMatch[1]);
+              
+              // 提取单位
+              const existingUnit = existingItem.weight.replace(existingWeightMatch[0], '').trim() || '克';
+              const newUnit = newItem.weight.replace(newWeightMatch[0], '').trim() || '克';
+              
+              // 如果单位相同，合并数值
+              if (existingUnit === newUnit || 
+                 (existingUnit === '克' && newUnit === 'g') || 
+                 (existingUnit === 'g' && newUnit === '克')) {
+                // 统一使用克作为单位
+                const unit = existingUnit === 'g' ? 'g' : '克';
+                const totalWeight = Math.round(existingWeightNum + newWeightNum);
+                
+                // 如果总重量超过1000克，转换为千克
+                if (totalWeight >= 1000 && (unit === '克' || unit === 'g')) {
+                  mergedWeight = `${(totalWeight / 1000).toFixed(2)}千克`;
+                } else {
+                  mergedWeight = `${totalWeight}${unit}`;
+                }
+              } else {
+                mergedWeight = `${Math.round(existingWeightNum)}${existingUnit}+${Math.round(newWeightNum)}${newUnit}`;
+              }
+            } else {
+              mergedWeight = `${existingItem.weight}+${newItem.weight}`;
+            }
+          } else {
+            mergedWeight = newItem.weight || existingItem.weight;
+          }
+          
+          // 合并数量
+          let mergedQuantity = '';
+          if (existingItem.quantity && newItem.quantity) {
+            // 尝试解析数字部分
+            const existingQuantityMatch = existingItem.quantity.match(/(\d+(\.\d+)?)/);
+            const newQuantityMatch = newItem.quantity.match(/(\d+(\.\d+)?)/);
+            
+            if (existingQuantityMatch && newQuantityMatch) {
+              const existingQuantityNum = parseFloat(existingQuantityMatch[1]);
+              const newQuantityNum = parseFloat(newQuantityMatch[1]);
+              
+              // 提取单位
+              const existingUnit = existingItem.quantity.replace(existingQuantityMatch[0], '').trim();
+              const newUnit = newItem.quantity.replace(newQuantityMatch[0], '').trim();
+              
+              // 如果单位相同，合并数值
+              if (existingUnit === newUnit) {
+                mergedQuantity = `${(existingQuantityNum + newQuantityNum).toFixed(0)}${existingUnit}`;
+              } else {
+                mergedQuantity = '/';
+              }
+            } else {
+              mergedQuantity = '/';
+            }
+          } else {
+            mergedQuantity = newItem.quantity || existingItem.quantity;
+          }
+          
+          // 更新食材
+          updatedItems[existingItemIndex] = {
+            ...existingItem,
+            quantity: mergedQuantity,
+            weight: mergedWeight,
+            createdAt: newItem.createdAt, // 使用新的录入时间
+            history: history
+          };
+        } else {
+          // 没有找到相同名称的食材，直接添加
+          updatedItems.push({
+            ...newItem,
+            history: []
+          });
+        }
+      }
+      
+      // 保存到本地存储
       localStorage.setItem('pantryItems', JSON.stringify(updatedItems));
     } catch (error) {
       console.error('保存到本地存储失败:', error);

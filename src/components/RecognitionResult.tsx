@@ -20,6 +20,8 @@ export interface IngredientItem {
   quantity: string;
   weight: string;
   isEditing?: boolean;
+  createdAt: string; // 录入时间
+  history?: { createdAt: string; quantity: string; weight: string; }[]; // 历史记录
 }
 
 /**
@@ -31,6 +33,38 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
   onClose,
   onSave
 }) => {
+  // 格式化日期时间
+  const formatDateTime = (isoString: string) => {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
+  // 格式化重量
+  const formatWeight = (weightStr: string) => {
+    if (!weightStr) return '';
+    
+    // 提取数字部分
+    const match = weightStr.match(/(\d+(\.\d+)?)/);
+    if (!match) return weightStr;
+    
+    const numValue = parseFloat(match[1]);
+    const unit = weightStr.replace(match[0], '').trim() || '克';
+    
+    // 如果单位是克且数值大于1000，转换为千克
+    if ((unit === '克' || unit === 'g' || unit === '') && numValue >= 1000) {
+      return `${(numValue / 1000).toFixed(2)}千克`;
+    }
+    
+    // 否则保留整数
+    return `${Math.round(numValue)}${unit}`;
+  };
+
   // 解析结果并生成带有唯一ID的食材项目
   const parseResultItems = React.useCallback(() => {
     if (!result || isLoading) return [];
@@ -57,7 +91,9 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
             name: match[1].trim(),
             quantity: match[2].trim(),
             weight: match[3].trim(),
-            isEditing: false
+            isEditing: false,
+            createdAt: new Date().toISOString(),
+            history: []
           };
         }
         
@@ -67,7 +103,9 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
           name: cleanLine,
           quantity: '',
           weight: '',
-          isEditing: false
+          isEditing: false,
+          createdAt: new Date().toISOString(),
+          history: []
         };
       });
   }, [result, isLoading]);
@@ -101,7 +139,9 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
       name: '',
       quantity: '',
       weight: '',
-      isEditing: false
+      isEditing: false,
+      createdAt: new Date().toISOString(),
+      history: []
     };
     setIngredientItems(prev => [...prev, newItem]);
   };
@@ -142,8 +182,8 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
               {/* 表头 */}
               <div className="flex items-center px-2 text-sm text-gray-500">
                 <div className="w-[40%] pl-2">类别</div>
-                <div className="w-[25%] pl-2">数量</div>
-                <div className="w-[25%] pl-2">重量</div>
+                <div className="w-[20%] pl-2">数量</div>
+                <div className="w-[30%] pl-2">重量</div>
                 <div className="w-[10%] text-center">删除</div>
               </div>
               
@@ -155,41 +195,49 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   layout
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-[40%]">
-                      <input
-                        type="text"
-                        value={item.name}
-                        onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
-                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
-                        placeholder="类别"
-                      />
+                  <div className="flex flex-col gap-2">
+                    {/* 食材信息行 */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-[40%]">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => handleUpdateItem(item.id, 'name', e.target.value)}
+                          className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
+                          placeholder="类别"
+                        />
+                      </div>
+                      <div className="w-[20%]">
+                        <input
+                          type="text"
+                          value={item.quantity}
+                          onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
+                          className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder="数量"
+                        />
+                      </div>
+                      <div className="w-[30%]">
+                        <input
+                          type="text"
+                          value={item.weight}
+                          onChange={(e) => handleUpdateItem(item.id, 'weight', e.target.value)}
+                          className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder="重量"
+                        />
+                      </div>
+                      <div className="w-[10%] flex justify-center items-center">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="w-[25%]">
-                      <input
-                        type="text"
-                        value={item.quantity}
-                        onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
-                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="数量"
-                      />
-                    </div>
-                    <div className="w-[25%]">
-                      <input
-                        type="text"
-                        value={item.weight}
-                        onChange={(e) => handleUpdateItem(item.id, 'weight', e.target.value)}
-                        className="w-full p-2 border border-orange-200 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="重量"
-                      />
-                    </div>
-                    <div className="w-[10%] flex justify-center items-center">
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                    
+                    {/* 录入时间行 */}
+                    <div className="text-xs text-gray-500 pl-2">
+                      {formatDateTime(item.createdAt)}
                     </div>
                   </div>
                 </motion.div>

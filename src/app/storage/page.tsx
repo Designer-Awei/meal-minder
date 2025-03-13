@@ -1,9 +1,48 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
 import { IngredientItem } from '@/components/RecognitionResult';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+
+/**
+ * 格式化日期时间
+ */
+const formatDateTime = (isoString: string) => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+/**
+ * 格式化重量
+ * 当重量超过1000克时，自动转换为千克单位，保留两位小数
+ */
+const formatWeight = (weightStr: string) => {
+  if (!weightStr) return '';
+  
+  // 提取数字部分
+  const match = weightStr.match(/(\d+(\.\d+)?)/);
+  if (!match) return weightStr;
+  
+  const numValue = parseFloat(match[1]);
+  const unit = weightStr.replace(match[0], '').trim() || '克';
+  
+  // 如果单位是克且数值大于1000，转换为千克
+  if ((unit === '克' || unit === 'g' || unit === '') && numValue >= 1000) {
+    return `${(numValue / 1000).toFixed(2)}千克`;
+  }
+  
+  // 否则保留整数
+  return `${Math.round(numValue)}${unit}`;
+};
 
 /**
  * 粮仓页面组件
@@ -11,6 +50,7 @@ import { IngredientItem } from '@/components/RecognitionResult';
 const StoragePage = () => {
   const [pantryItems, setPantryItems] = useState<IngredientItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   // 从本地存储加载食材
   useEffect(() => {
@@ -45,6 +85,14 @@ const StoragePage = () => {
     }
   };
 
+  // 切换展开/折叠状态
+  const toggleExpand = (id: string) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   return (
     <main className="relative w-full max-w-[402px] mx-auto min-h-screen bg-white pb-[83px]">
       {/* 页面标题 */}
@@ -61,42 +109,102 @@ const StoragePage = () => {
         ) : pantryItems.length > 0 ? (
           <div className="space-y-3">
             {/* 表头 */}
-            <div className="flex items-center px-4 text-sm text-gray-500">
-              <div className="w-[40%]">类别</div>
-              <div className="w-[20%]">数量</div>
-              <div className="w-[20%]">重量</div>
-              <div className="w-[20%] text-center">操作</div>
+            <div className="flex items-center px-3 text-sm text-gray-500">
+              <div className="w-[40%] pl-2">类别</div>
+              <div className="w-[20%] pl-2">数量</div>
+              <div className="w-[25%] pl-2">重量</div>
+              <div className="w-[15%] text-center">操作</div>
             </div>
             
             {/* 食材列表 */}
             {pantryItems.map((item) => (
               <motion.div
                 key={item.id}
-                className="p-3 bg-orange-50 rounded-lg shadow-sm border border-orange-100"
+                className="bg-orange-50 rounded-lg shadow-sm border border-orange-100 overflow-hidden"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 layout
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-[40%] p-2 text-sm">
-                    {item.name}
+                <div className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[40%] p-2 text-sm relative">
+                      <div className="flex items-center">
+                        <span className="mr-1">{item.name}</span>
+                        {item.history && item.history.length > 0 && (
+                          <button 
+                            onClick={() => toggleExpand(item.id)}
+                            className="ml-1 text-gray-500 hover:text-orange-500"
+                          >
+                            {expandedItems[item.id] ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {formatDateTime(item.createdAt)}
+                      </div>
+                    </div>
+                    <div className="w-[20%] p-2 text-sm">
+                      <div className="flex">
+                        <span>{item.quantity.replace(/[^\d.]/g, '')}</span>
+                        <span className="text-gray-500 ml-1">{item.quantity.replace(/[\d.]/g, '')}</span>
+                      </div>
+                    </div>
+                    <div className="w-[25%] p-2 text-sm">
+                      <div className="flex">
+                        <span>{formatWeight(item.weight).replace(/[^\d.]/g, '')}</span>
+                        <span className="text-gray-500 ml-1">{formatWeight(item.weight).replace(/[\d.]/g, '')}</span>
+                      </div>
+                    </div>
+                    <div className="w-[15%] flex justify-center items-center">
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-50"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="w-[20%] p-2 text-sm">
-                    {item.quantity}
-                  </div>
-                  <div className="w-[20%] p-2 text-sm">
-                    {item.weight}
-                  </div>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="w-[20%] flex justify-center items-center p-2 text-red-500 hover:text-red-700 rounded-full"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
                 </div>
+                
+                {/* 历史记录 */}
+                <AnimatePresence>
+                  {expandedItems[item.id] && item.history && item.history.length > 0 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="bg-orange-100/50 border-t border-orange-200"
+                    >
+                      <div className="p-3 text-sm">
+                        <div className="text-xs font-medium text-gray-500 mb-2">历史记录</div>
+                        {item.history.map((historyItem, index) => (
+                          <div key={index} className="flex items-center py-1 border-b border-orange-100 last:border-b-0">
+                            <div className="w-[40%] p-2 text-sm text-gray-600">
+                              {formatDateTime(historyItem.createdAt)}
+                            </div>
+                            <div className="w-[20%] p-2 text-sm text-gray-600">
+                              <div className="flex">
+                                <span>{historyItem.quantity.replace(/[^\d.]/g, '')}</span>
+                                <span className="text-gray-400 ml-1">{historyItem.quantity.replace(/[\d.]/g, '')}</span>
+                              </div>
+                            </div>
+                            <div className="w-[25%] p-2 text-sm text-gray-600">
+                              <div className="flex">
+                                <span>{formatWeight(historyItem.weight).replace(/[^\d.]/g, '')}</span>
+                                <span className="text-gray-400 ml-1">{formatWeight(historyItem.weight).replace(/[\d.]/g, '')}</span>
+                              </div>
+                            </div>
+                            <div className="w-[15%]"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ))}
           </div>
