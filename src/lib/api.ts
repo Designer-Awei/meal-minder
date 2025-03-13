@@ -3,6 +3,8 @@
  * 处理与 SiliconFlow API 的通信
  */
 
+import { SILICONFLOW_CONFIG } from './config';
+
 // 定义消息类型
 export interface Message {
   role: 'system' | 'user' | 'assistant';
@@ -45,7 +47,7 @@ interface ApiResponse {
 export async function recognizeIngredients(imageBase64: string): Promise<string> {
   try {
     const apiKey = process.env.NEXT_PUBLIC_SILICONFLOW_API_KEY;
-    const apiUrl = 'https://api.siliconflow.cn/v1/chat/completions';
+    const apiUrl = SILICONFLOW_CONFIG.API_URL;
     const model = 'deepseek-ai/deepseek-vl2'; // 使用 DeepSeek-VL2 视觉模型
 
     if (!apiKey) {
