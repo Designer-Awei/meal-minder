@@ -1,22 +1,19 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import BottomNavigation from '@/components/BottomNavigation';
+import { useUser } from '@/contexts/UserContext';
+import { Pencil, X, Check, Camera } from 'lucide-react';
 
 /**
  * 个人页面组件
  */
 const ProfilePage = () => {
-  // 用户信息
-  const user = {
-    name: '张三',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    level: 5,
-    points: 320,
-    favorites: 12,
-    recipes: 8
-  };
+  const { user, updateUser, isLoading } = useUser();
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 菜单项
   const menuItems = [
@@ -27,7 +24,7 @@ const ProfilePage = () => {
         </svg>
       ),
       label: '我的收藏',
-      count: user.favorites
+      count: user?.favorites || 0
     },
     {
       icon: (
@@ -37,7 +34,7 @@ const ProfilePage = () => {
         </svg>
       ),
       label: '我的食谱',
-      count: user.recipes
+      count: user?.recipes || 0
     },
     {
       icon: (
@@ -51,34 +48,127 @@ const ProfilePage = () => {
     }
   ];
 
+  // 开始编辑
+  const handleStartEdit = () => {
+    setTempName(user.name);
+    setIsEditing(true);
+  };
+
+  // 取消编辑
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  // 保存编辑
+  const handleSaveEdit = () => {
+    if (tempName.trim()) {
+      updateUser({ name: tempName.trim() });
+    }
+    setIsEditing(false);
+  };
+
+  // 处理头像上传
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // 处理文件选择
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateUser({ avatar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="relative w-full max-w-[402px] mx-auto min-h-screen bg-white pb-[83px] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+      </main>
+    );
+  }
+
   return (
     <main className="relative w-full max-w-[402px] mx-auto min-h-screen bg-white pb-[83px]">
       {/* 用户信息卡片 */}
-      <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-6 rounded-b-3xl">
-        <div className="flex items-center">
-          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white">
-            <img 
-              src={user.avatar} 
-              alt={user.name} 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="ml-4 text-white">
-            <h2 className="text-xl font-bold">{user.name}</h2>
-            <div className="flex items-center mt-1">
-              <span className="bg-white/20 px-2 py-0.5 rounded text-xs">
-                Lv.{user.level}
-              </span>
-              <span className="ml-2 text-sm">
-                {user.points} 积分
-              </span>
+      <div className="w-full">
+        <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-6 rounded-b-3xl relative">
+          {!isEditing ? (
+            <button 
+              onClick={handleStartEdit}
+              className="absolute top-4 right-4 bg-white/20 p-2 rounded-full"
+            >
+              <Pencil size={18} color="white" />
+            </button>
+          ) : (
+            <div className="absolute top-4 right-4 flex space-x-2">
+              <button 
+                onClick={handleCancelEdit}
+                className="bg-white/20 p-2 rounded-full"
+              >
+                <X size={18} color="white" />
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="bg-white/20 p-2 rounded-full"
+              >
+                <Check size={18} color="white" />
+              </button>
+            </div>
+          )}
+          
+          <div className="flex items-center">
+            <div 
+              className="w-20 h-20 rounded-full overflow-hidden border-4 border-white relative flex-shrink-0"
+              onClick={handleAvatarClick}
+            >
+              <img 
+                src={user.avatar} 
+                alt={user.name} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <Camera size={24} color="white" />
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </div>
+            <div className="ml-4 text-white">
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  className="text-xl font-bold bg-white/20 rounded px-2 py-1 outline-none"
+                  autoFocus
+                />
+              ) : (
+                <h2 className="text-xl font-bold">{user.name}</h2>
+              )}
+              <div className="flex items-center mt-1">
+                <span className="bg-white/20 px-2 py-0.5 rounded text-xs">
+                  Lv.{user.level}
+                </span>
+                <span className="ml-2 text-sm">
+                  {user.points} 积分
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       {/* 菜单列表 */}
-      <div className="p-4 mt-4">
+      <div className="p-4 mt-2">
         <h3 className="text-lg font-medium mb-4 px-2">我的功能</h3>
         <div className="space-y-2">
           {menuItems.map((item, index) => (
