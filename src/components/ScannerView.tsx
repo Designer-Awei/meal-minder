@@ -24,6 +24,7 @@ const ScannerView: React.FC = () => {
   const [recognitionResult, setRecognitionResult] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
   const [activeTab, setActiveTab] = useState<'ai' | 'voice'>('ai');
+  const [recognizedIngredients, setRecognizedIngredients] = useState<IngredientItem[]>([]);
   
   // 引用
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -226,9 +227,6 @@ const ScannerView: React.FC = () => {
     // 保存识别到的食材列表
     setRecognizedIngredients(ingredients);
     
-    // 跳转到首页
-    router.push('/');
-    
     // 可以在这里添加将识别结果保存到本地存储或发送到服务器的逻辑
     console.log('添加到粮仓的食材:', ingredients);
     
@@ -349,8 +347,13 @@ const ScannerView: React.FC = () => {
       
       // 保存到本地存储
       localStorage.setItem('pantryItems', JSON.stringify(updatedItems));
+      
+      // 保存成功后跳转到首页
+      router.push('/');
     } catch (error) {
       console.error('保存到本地存储失败:', error);
+      // 即使保存失败也跳转到首页
+      router.push('/');
     }
   };
 
