@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { recognizeIngredients } from '@/lib/api';
-import RecognitionResult from './RecognitionResult';
+import RecognitionResult, { IngredientItem } from './RecognitionResult';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -28,6 +28,9 @@ const ScannerView: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  
+  // 添加识别到的食材列表状态
+  const [recognizedIngredients, setRecognizedIngredients] = useState<IngredientItem[]>([]);
   
   // 初始化摄像头
   const initCamera = async () => {
@@ -181,7 +184,25 @@ const ScannerView: React.FC = () => {
       
       // 调用 API 识别食材
       const result = await recognizeIngredients(base64Data);
-      setRecognitionResult(result);
+      
+      // 处理可能的 JSON 字符串响应
+      let processedResult = result;
+      try {
+        // 尝试解析 JSON 字符串
+        const jsonResult = JSON.parse(result);
+        if (Array.isArray(jsonResult) && jsonResult.some(item => item.type === 'text')) {
+          // 如果是包含 text 类型的数组，提取文本内容
+          processedResult = jsonResult
+            .filter(item => item.type === 'text')
+            .map(item => item.text)
+            .join('\n');
+        }
+      } catch (e) {
+        // 如果不是 JSON 字符串，直接使用原始结果
+        console.log('结果不是 JSON 格式，使用原始文本');
+      }
+      
+      setRecognitionResult(processedResult);
     } catch (error) {
       console.error('识别食材失败:', error);
       setRecognitionResult('识别失败，请重试');
@@ -190,15 +211,28 @@ const ScannerView: React.FC = () => {
     }
   };
   
-  // 添加到清单
-  const addToShoppingList = () => {
+  // 添加到粮仓
+  const addToShoppingList = (ingredients: IngredientItem[]) => {
     // 关闭结果弹窗
     setShowResult(false);
+    
+    // 保存识别到的食材列表
+    setRecognizedIngredients(ingredients);
     
     // 跳转到首页
     router.push('/');
     
     // 可以在这里添加将识别结果保存到本地存储或发送到服务器的逻辑
+    console.log('添加到粮仓的食材:', ingredients);
+    
+    // 示例：保存到 localStorage
+    try {
+      const existingItems = JSON.parse(localStorage.getItem('pantryItems') || '[]');
+      const updatedItems = [...existingItems, ...ingredients];
+      localStorage.setItem('pantryItems', JSON.stringify(updatedItems));
+    } catch (error) {
+      console.error('保存到本地存储失败:', error);
+    }
   };
 
   return (
@@ -382,7 +416,7 @@ const ScannerView: React.FC = () => {
             result={recognitionResult}
             isLoading={isRecognizing}
             onClose={() => setShowResult(false)}
-            onAddToList={addToShoppingList}
+            onAddToList={(ingredients) => addToShoppingList(ingredients)}
           />
         )}
       </AnimatePresence>
