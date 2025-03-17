@@ -63,7 +63,14 @@ const ProfilePage = () => {
   // 保存编辑
   const handleSaveEdit = () => {
     if (tempName.trim()) {
-      updateUser({ name: tempName.trim() });
+      updateUser({ 
+        name: tempName.trim(),
+        avatar: user.avatar,
+        level: user.level,
+        points: user.points,
+        favorites: user.favorites,
+        recipes: user.recipes
+      });
     }
     setIsEditing(false);
   };
@@ -152,8 +159,9 @@ const ProfilePage = () => {
                   type="text"
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className="text-xl font-bold bg-white/20 rounded px-2 py-1 outline-none"
+                  className="text-xl font-bold bg-white/20 rounded px-2 py-1 outline-none w-[120px]"
                   autoFocus
+                  maxLength={10}
                 />
               ) : (
                 <h2 className="text-xl font-bold">{user.name}</h2>

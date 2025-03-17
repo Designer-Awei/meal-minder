@@ -25,8 +25,8 @@ interface UserContextType {
 
 // 默认用户信息
 const defaultUser: UserInfo = {
-  name: '小黄',
-  avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+  name: '小明',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default',
   level: 1,
   points: 0,
   favorites: 0,

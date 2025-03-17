@@ -96,8 +96,8 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
         // 移除行首的数字和点（如果有）
         const cleanLine = line.replace(/^\d+\.\s*/, '').trim();
         
-        // 尝试解析食材名称、数量和重量
-        const match = cleanLine.match(/^(.+?)：(.+?)（约(.+?)）$/);
+        // 尝试解析【食材名称^数量^重量】格式
+        const match = cleanLine.match(/【(.+?)\^(.+?)\^(.+?)】/);
         
         if (match) {
           return {
@@ -111,7 +111,22 @@ const RecognitionResult: React.FC<RecognitionResultProps> = ({
           };
         }
         
-        // 如果无法解析，则将整行作为名称
+        // 如果无法解析新格式，尝试解析旧格式（食材名称：数量（约重量））
+        const oldFormatMatch = cleanLine.match(/^(.+?)：(.+?)（约(.+?)）$/);
+        
+        if (oldFormatMatch) {
+          return {
+            id: `ingredient-${index}-${Date.now()}`,
+            name: oldFormatMatch[1].trim(),
+            quantity: oldFormatMatch[2].trim(),
+            weight: oldFormatMatch[3].trim(),
+            isEditing: false,
+            createdAt: new Date().toISOString(),
+            history: []
+          };
+        }
+        
+        // 如果无法解析任何格式，则将整行作为名称
         return {
           id: `ingredient-${index}-${Date.now()}`,
           name: cleanLine,
