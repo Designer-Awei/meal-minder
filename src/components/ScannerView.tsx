@@ -648,18 +648,19 @@ const ScannerView: React.FC = () => {
   // 文本区域渲染
   const renderTextArea = () => {
     return (
-      <div className="relative">
+      <div className="relative h-full">
         <textarea
           value={voiceText}
           onChange={(e) => setVoiceText(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full h-full bg-transparent border-none resize-none focus:outline-none text-base leading-[24px]"
-          style={{ padding: 0 }}
+          className="w-full h-full bg-transparent border-none resize-none focus:outline-none text-base leading-relaxed px-0 py-2 whitespace-pre-wrap break-words"
+          style={{ minHeight: '100%' }}
           placeholder=""
         />
         {tempVoiceText && (
-          <div className="absolute left-0 right-0 text-gray-400 pointer-events-none" style={{ top: voiceText ? '24px' : '0' }}>
+          <div className="absolute left-0 right-0 text-gray-400 pointer-events-none break-words whitespace-pre-wrap leading-relaxed px-0 py-2" 
+               style={{ top: voiceText ? 'auto' : '0' }}>
             {tempVoiceText}
           </div>
         )}
@@ -806,20 +807,36 @@ const ScannerView: React.FC = () => {
             <div className="relative flex flex-col gap-4">
               {/* 语音输入框 */}
               <div className="w-full rounded-2xl border-2 border-orange-400 bg-white p-4 h-[calc(100vh-280px)] relative">
-                {/* 背景提示 - 只在没有文本且未获得焦点时显示 */}
-                {!voiceText && !tempVoiceText && !isFocused && (
-                  <div className="absolute left-4 top-4 flex items-center gap-2 pointer-events-none">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                      <line x1="12" y1="19" x2="12" y2="22"/>
-                    </svg>
-                    <span className="text-gray-400 text-base leading-[24px]">请对我说出你的新增食材</span>
-                  </div>
-                )}
-                
                 {/* 文本区域 */}
-                {renderTextArea()}
+                <div className="relative h-full">
+                  <textarea
+                    value={voiceText}
+                    onChange={(e) => setVoiceText(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className="w-full h-full bg-transparent border-none resize-none focus:outline-none text-base leading-relaxed whitespace-pre-wrap break-words"
+                    style={{ minHeight: '100%', padding: '0' }}
+                    placeholder={!voiceText && !tempVoiceText && !isFocused ? "" : ""}
+                  />
+                  {/* 背景提示 - 只在没有文本且未获得焦点时显示 */}
+                  {!voiceText && !tempVoiceText && !isFocused && (
+                    <div className="absolute left-0 top-0 flex items-center gap-2 pointer-events-none">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="22"/>
+                      </svg>
+                      <span className="text-gray-400 text-base">请对我说出你的新增食材</span>
+                    </div>
+                  )}
+                  {/* 临时文本显示 */}
+                  {tempVoiceText && (
+                    <div className="absolute left-0 right-0 text-gray-400 pointer-events-none break-words whitespace-pre-wrap leading-relaxed" 
+                         style={{ top: '0' }}>
+                      {tempVoiceText}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 底部按钮区域 */}
