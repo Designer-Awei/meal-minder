@@ -147,28 +147,35 @@ const ScannerView: React.FC = () => {
   
   // 拍照功能
   const takePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || !isCameraReady) return;
     
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
     // 设置画布尺寸与视频相同
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth || video.clientWidth;
+    canvas.height = video.videoHeight || video.clientHeight;
     
     // 在画布上绘制当前视频帧
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // 将画布内容转换为数据URL
-      const imageData = canvas.toDataURL('image/jpeg');
-      setCapturedImage(imageData);
-      
-      // 停止视频流以节省资源
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
+      // 确保视频帧已经加载
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 将画布内容转换为数据URL
+        try {
+          const imageData = canvas.toDataURL('image/jpeg', 0.8);
+          setCapturedImage(imageData);
+          
+          // 停止视频流以节省资源
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+          }
+        } catch (error) {
+          console.error('转换图像失败:', error);
+        }
       }
     }
   };
@@ -988,6 +995,12 @@ const ScannerView: React.FC = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* 添加隐藏的 canvas 元素 */}
+      <canvas
+        ref={canvasRef}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };
