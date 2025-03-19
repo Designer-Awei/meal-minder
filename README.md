@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meal Minder（膳食管家）
 
-## Getting Started
+一个现代化的食材管理应用，帮助用户追踪和管理家中的食材库存。
 
-First, run the development server:
+## 项目功能
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. 食材管理
+- **AI 扫描识别**：
+  - 支持拍照识别食材
+  - 自动提取食材名称、数量和重量信息
+  - 支持从相册选择图片
+
+- **语音输入**：
+  - 中文语音识别
+  - 实时语音转文字
+  - 智能单位转换（斤、克、千克等）
+  - 支持多个食材批量录入
+
+- **食材库存**：
+  - 食材分类管理
+  - 数量/重量追踪
+  - 历史记录保存（最近3条）
+  - 智能合并相同食材
+
+### 2. 食谱管理
+- 收藏食谱
+- 食谱推荐
+- 根据库存食材推荐
+
+### 3. 用户系统
+- 个人信息管理
+- 偏好设置
+- 使用统计
+
+## 技术架构
+
+### 前端技术栈
+- **框架**: Next.js 15.2.2
+- **语言**: TypeScript
+- **状态管理**: React Hooks
+- **UI 框架**: TailwindCSS
+- **动画**: Framer Motion
+- **构建工具**: Turbopack
+
+### 核心功能实现
+1. **AI 识别系统**
+   - 基于 Canvas 的图像处理
+   - 自定义图像识别 API 集成
+   - 实时预览和图像捕获
+
+2. **语音识别系统**
+   - Web Speech API 集成
+   - 实时语音转文字
+   - 自定义文本处理算法
+   - 智能单位换算系统
+
+3. **存储系统**
+   - LocalStorage 数据持久化
+   - 历史记录追踪
+   - 数据合并算法
+
+### 项目结构
+```
+meal-minder/
+├── src/
+│   ├── app/                 # 应用路由和页面
+│   │   ├── ScannerView/    # 扫描识别组件
+│   │   ├── RecognitionResult/ # 识别结果组件
+│   │   └── ...
+│   ├── lib/                 # 工具函数和API
+│   │   ├── api.ts          # API 接口
+│   │   └── utils.ts        # 工具函数
+│   └── styles/             # 样式文件
+├── public/                  # 静态资源
+└── ...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 关键特性
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. 智能单位转换系统
+- 支持中文数字转阿拉伯数字
+- 智能处理特殊单位（如"两"转"2"）
+- 自动单位换算（克转千克等）
+- 保留原始单位显示
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. 实时语音识别优化
+- 连续语音识别
+- 临时结果实时显示
+- 智能断句和分段
+- 错误自动恢复
 
-## Learn More
+### 3. 数据合并算法
+- 智能匹配相同食材
+- 自动合并数量和重量
+- 保留历史记录
+- 处理不同单位的合并
 
-To learn more about Next.js, take a look at the following resources:
+## 开发环境设置
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 系统要求
+- Node.js 18+
+- npm 或 yarn
+- 现代浏览器（支持 Web Speech API）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 安装步骤
+```bash
+# 克隆项目
+git clone [项目地址]
 
-## Deploy on Vercel
+# 安装依赖
+npm install
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 启动开发服务器
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 环境变量配置
+```env
+NEXT_PUBLIC_API_URL=你的API地址
+```
+
+## API 集成
+
+### 1. 图像识别 API
+- `/api/recognizeIngredients`: 食材图像识别
+- `/api/recognizeVoiceInput`: 语音输入处理
+
+### 2. 响应格式
+```typescript
+interface RecognitionResult {
+  name: string;
+  quantity?: string;
+  weight?: string;
+  createdAt: string;
+}
+```
+
+## 注意事项
+1. 语音识别需要浏览器支持 Web Speech API
+2. 图像识别需要相机权限
+3. 建议在 HTTPS 环境下运行以获得完整功能
+
+## 未来计划
+- [ ] 添加食材保质期提醒
+- [ ] 支持多语言
+- [ ] 添加购物清单功能
+- [ ] 优化离线支持
