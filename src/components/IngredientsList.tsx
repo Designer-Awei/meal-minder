@@ -45,7 +45,7 @@ const item = {
 
 const IngredientsList = () => {
   return (
-    <div className="px-4">
+    <div className="px-4 pt-1">
       <div className="flex justify-between items-center mb-4">
         <motion.h3 
           initial={{ opacity: 0, x: -20 }}

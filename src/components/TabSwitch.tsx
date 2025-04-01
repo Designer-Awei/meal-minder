@@ -8,13 +8,13 @@ const TabSwitch = () => {
   const [activeTab, setActiveTab] = useState('shopping');
 
   return (
-    <div className="px-4 py-3">
+    <div className="px-4 py-2">
       <Tabs.Root 
         defaultValue="shopping" 
         className="w-full"
         onValueChange={setActiveTab}
       >
-        <Tabs.List className="flex w-full h-12 bg-[rgba(56,48,46,0.05)] rounded-[53px] p-1">
+        <Tabs.List className="flex w-full h-[46px] bg-[rgba(56,48,46,0.05)] rounded-[53px] p-[3px]">
           <TabTrigger value="shopping" isSelected={activeTab === 'shopping'}>
             补货清单
           </TabTrigger>
@@ -39,7 +39,7 @@ const TabTrigger = ({
   return (
     <Tabs.Trigger
       value={value}
-      className="flex-1 h-9 rounded-[27px] flex items-center justify-center text-sm relative"
+      className="flex-1 h-10 rounded-[27px] flex items-center justify-center text-sm relative"
     >
       <AnimatePresence>
         {isSelected && (
